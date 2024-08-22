@@ -1,0 +1,313 @@
+#include<iostream>
+#include<fstream>
+#include<cctype>
+#include<iomanip>
+using namespace std;
+
+class bankAccount
+{
+    int accNo;
+    char holderName[50];
+    int balance;
+    char accType;
+public:
+    void createAccount();
+    void displayAccount() const;
+    void updateAccount();
+    void depositAmount(int);
+    void withdrawAmount(int);
+    void displayReport() const;
+    int getAccountNo() const;
+    int getBalance() const;
+    char getType() const;
+};
+
+void bankAccount::createAccount()
+{
+    system("clear");
+    cout << "\n\t\t\tEnter the Account Number: ";
+    cin >> accNo;
+    cout << "\n\n\t\t\tEnter the Account Holder's Name: ";
+    cin.ignore();
+    cin.getline(holderName, 50);
+    cout << "\n\t\t\tEnter Account Type (C/S): ";
+    cin >> accType;
+    accType = toupper(accType);
+    cout << "\n\t\t\tEnter Initial Deposit: ";
+    cin >> balance;
+    cout << "\n\n\t\t\tAccount Created.";
+}
+
+void bankAccount::displayAccount() const
+{
+    cout << "\n\t\t\tAccount Number: " << accNo;
+    cout << "\n\t\t\tAccount Holder Name: " << holderName;
+    cout << "\n\t\t\tAccount Type: " << accType;
+    cout << "\n\t\t\tBalance: " << balance;
+}
+
+void bankAccount::updateAccount()
+{
+    cout << "\n\t\t\tAccount Number: " << accNo;
+    cout << "\n\t\t\tUpdate Account Holder's Name: ";
+    cin.ignore();
+    cin.getline(holderName, 50);
+    cout << "\n\t\t\tUpdate Account Type: ";
+    cin >> accType;
+    accType = toupper(accType);
+    cout << "\n\t\t\tUpdate Balance: ";
+    cin >> balance;
+}
+
+void bankAccount::depositAmount(int amt)
+{
+    balance += amt;
+}
+
+void bankAccount::withdrawAmount(int amt)
+{
+    balance -= amt;
+}
+
+void bankAccount::displayReport() const
+{
+    cout << accNo << setw(10) << " " << holderName << setw(10) << " " << accType << setw(6) << balance << endl;
+}
+
+int bankAccount::getAccountNo() const
+{
+    return accNo;
+}
+
+int bankAccount::getBalance() const
+{
+    return balance;
+}
+
+char bankAccount::getType() const
+{
+    return accType;
+}
+
+void createNewAccount();
+void displaySingleAccount(int);
+void updateAccountDetails(int);
+void removeAccount(int);
+void displayAllAccounts();
+void handleTransaction(int, int);
+
+int main()
+{
+    char option;
+    int accountNumber;
+    do
+    {
+        system("CLS");
+        cout << "\n\n\t\t\t\t======================\n";
+        cout << "\t\t\t\tBANK MANAGEMENT SYSTEM";
+        cout << "\n\t\t\t\t======================\n";
+
+        cout << "\t\t\t\t    ::MAIN MENU::\n";
+        cout << "\n\t\t\t\t1. NEW ACCOUNT";
+        cout << "\n\t\t\t\t2. DEPOSIT AMOUNT";
+        cout << "\n\t\t\t\t3. WITHDRAW AMOUNT";
+        cout << "\n\t\t\t\t4. BALANCE ENQUIRY";
+        cout << "\n\t\t\t\t5. ACCOUNT HOLDER LIST";
+        cout << "\n\t\t\t\t6. CLOSE AN ACCOUNT";
+        cout << "\n\t\t\t\t7. MODIFY AN ACCOUNT";
+        cout << "\n\t\t\t\t8. EXIT";
+        cout << "\n\n\t\t\t\tSelect Your Option (1-8): ";
+        cin >> option;
+
+        switch (option)
+        {
+        case '1':
+            createNewAccount();
+            break;
+        case '2':
+            system("CLS");
+            cout << "\n\n\t\t\tEnter Account Number: "; 
+            cin >> accountNumber;
+            handleTransaction(accountNumber, 1);
+            break;
+        case '3':
+            system("CLS");
+            cout << "\n\n\t\t\tEnter Account Number: "; 
+            cin >> accountNumber;
+            handleTransaction(accountNumber, 2);
+            break;
+        case '4':
+            system("CLS");
+            cout << "\n\n\t\t\tEnter Account Number: "; 
+            cin >> accountNumber;
+            displaySingleAccount(accountNumber);
+            break;
+        case '5':
+            displayAllAccounts();
+            break;
+        case '6':
+            system("CLS");
+            cout << "\n\n\t\t\tEnter Account Number: "; 
+            cin >> accountNumber;
+            removeAccount(accountNumber);
+            break;
+        case '7':
+            system("CLS");
+            cout << "\n\n\t\t\tEnter Account Number: "; 
+            cin >> accountNumber;
+            updateAccountDetails(accountNumber);
+            break;
+        case '8':
+            system("CLS");
+            cout << "\n\n\t\t\tBrought to You by ABC Corporation";
+            break;
+        default:
+            cout << "\a";
+        }
+        cin.ignore();
+        cin.get();
+    } while (option != '8');
+    return 0;
+}
+
+void createNewAccount()
+{
+    bankAccount account;
+    ofstream outFile;
+    outFile.open("accounts.dat", ios::binary | ios::app);
+    account.createAccount();
+    outFile.write(reinterpret_cast<char*>(&account), sizeof(bankAccount));
+    outFile.close();
+}
+
+void displaySingleAccount(int accountNumber)
+{
+    bankAccount account;
+    bool found = false;
+    ifstream inFile;
+    inFile.open("accounts.dat", ios::binary);
+    if (!inFile)
+    {
+        cout << "File could not be opened! Press any key...";
+        return;
+    }
+    cout << "\n\t\t\tACCOUNT DETAILS\n";
+    while (inFile.read(reinterpret_cast<char*>(&account), sizeof(bankAccount)))
+    {
+        if (account.getAccountNo() == accountNumber)
+        {
+            account.displayAccount();
+            found = true;
+        }
+    }
+    inFile.close();
+    if (!found)
+        cout << "\n\n\t\t\tAccount number does not exist.";
+}
+
+void updateAccountDetails(int accountNumber)
+{
+    bool found = false;
+    bankAccount account;
+    fstream file;
+    file.open("accounts.dat", ios::binary | ios::in | ios::out);
+    if (!file)
+    {
+        cout << "File could not be opened! Press any key...";
+        return;
+    }
+    while (!file.eof() && !found)
+    {
+        file.read(reinterpret_cast<char*>(&account), sizeof(bankAccount));
+        if (account.getAccountNo() == accountNumber)
+        {
+            account.displayAccount();
+            cout << "\n\n\t\t\tEnter the New Details for the Account\n";
+            account.updateAccount();
+            int position = (-1) * static_cast<int>(sizeof(bankAccount));
+            file.seekp(position, ios::cur);
+            file.write(reinterpret_cast<char*>(&account), sizeof(bankAccount));
+            cout << "\n\n\t\t\tAccount Updated";
+            found = true;
+        }
+    }
+    file.close();
+    if (!found)
+        cout << "\n\n\t\t\tAccount Not Found.";
+}
+
+void removeAccount(int accountNumber)
+{
+    bankAccount account;
+    ifstream inFile;
+    ofstream outFile;
+    inFile.open("accounts.dat", ios::binary);
+    if (!inFile)
+    {
+        cout << "File could not be opened! Press any key...";
+        return;
+    }
+    outFile.open("Temp.dat", ios::binary);
+    inFile.seekg(0, ios::beg);
+    while (inFile.read(reinterpret_cast<char*>(&account), sizeof(bankAccount)))
+    {
+        if (account.getAccountNo() != accountNumber)
+        {
+            outFile.write(reinterpret_cast<char*>(&account), sizeof(bankAccount));
+        }
+    }
+    inFile.close();
+    outFile.close();
+    remove("accounts.dat");
+    rename("Temp.dat", "accounts.dat");
+    cout << "\n\nAccount Deleted.";
+}
+
+void displayAllAccounts()
+{
+    system("CLS");
+    bankAccount account;
+    ifstream inFile;
+    inFile.open("accounts.dat", ios::binary);
+    if (!inFile)
+    {
+        cout << "File could not be opened! Press any key...";
+        return;
+    }
+    cout << "\n\n\t\tACCOUNT HOLDER LIST\n\n";
+    cout << "====================================================\n";
+    cout << "A/c no.      NAME           Type  Balance\n";
+    cout << "====================================================\n";
+    while (inFile.read(reinterpret_cast<char*>(&account), sizeof(bankAccount)))
+    {
+        account.displayReport();
+    }
+    inFile.close();
+}
+
+void handleTransaction(int accountNumber, int option)
+{
+    int amount;
+    bool found = false;
+    bankAccount account;
+    fstream file;
+    file.open("accounts.dat", ios::binary | ios::in | ios::out);
+    if (!file)
+    {
+        cout << "File could not be opened! Press any key...";
+        return;
+    }
+    while (!file.eof() && !found)
+    {
+        file.read(reinterpret_cast<char*>(&account), sizeof(bankAccount));
+        if (account.getAccountNo() == accountNumber)
+        {
+            account.displayAccount();
+            if (option == 1)
+            {
+                cout << "\n\n\t\t\tDEPOSIT AMOUNT";
+                cout << "\n\n\t\t\tEnter the amount to deposit: ";
+                cin >> amount;
+                account.depositAmount(amount);
+            }
+            if (option == 
